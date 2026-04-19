@@ -12,6 +12,8 @@ class MusicPlayer:
         self.tracks = []
         self.current_track = 0
         self.playing = False
+        self.paused = False
+        self.pause_time = 0
         
         self.font = pygame.font.Font(None, 36)
         self.small_font = pygame.font.Font(None, 24)
@@ -35,7 +37,12 @@ class MusicPlayer:
                     running = False
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_p:
-                        self.play()
+                        if self.playing:
+                            self.pause()
+                        elif self.paused:
+                            self.resume()
+                        else:
+                            self.play()
                     elif event.key == pygame.K_s:
                         self.stop()
                     elif event.key == pygame.K_n:
@@ -57,12 +64,14 @@ class MusicPlayer:
             
             if self.playing:
                 status_text = self.font.render("Status: PLAYING", True, (100, 255, 100))
+            elif self.paused:
+                status_text = self.font.render("Status: PAUSED", True, (255, 255, 100))
             else:
                 status_text = self.font.render("Status: STOPPED", True, (255, 100, 100))
             self.screen.blit(status_text, (100, 160))
             
             controls_y = 250
-            controls = ["P - Play", "S - Stop", "N - Next Track", "B - Previous Track", "Q - Quit"]
+            controls = ["P - Play/Pause", "S - Stop", "N - Next Track", "B - Previous Track", "Q - Quit"]
             for control in controls:
                 text = self.small_font.render(control, True, (200, 200, 200))
                 self.screen.blit(text, (100, controls_y))
@@ -75,18 +84,33 @@ class MusicPlayer:
         sys.exit()
     
     def play(self):
-        if not self.playing and len(self.tracks) > 0:
-            try:
-                track_path = os.path.join("music", self.tracks[self.current_track])
-                pygame.mixer.music.load(track_path)
-                pygame.mixer.music.play()
-                self.playing = True
-            except:
-                print("Could not play track")
+        if len(self.tracks) > 0:
+            track_path = os.path.join("music", self.tracks[self.current_track])
+            pygame.mixer.music.load(track_path)
+            pygame.mixer.music.play()
+            self.playing = True
+            self.paused = False
+    
+    def pause(self):
+        if self.playing:
+            self.pause_time = pygame.mixer.music.get_pos()
+            pygame.mixer.music.stop()
+            self.playing = False
+            self.paused = True
+    
+    def resume(self):
+        if self.paused:
+            track_path = os.path.join("music", self.tracks[self.current_track])
+            pygame.mixer.music.load(track_path)
+            pygame.mixer.music.play(start=self.pause_time / 1000)
+            self.playing = True
+            self.paused = False
     
     def stop(self):
         pygame.mixer.music.stop()
         self.playing = False
+        self.paused = False
+        self.pause_time = 0
     
     def next_track(self):
         self.stop()

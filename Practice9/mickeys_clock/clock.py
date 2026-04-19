@@ -4,18 +4,24 @@ from datetime import datetime
 
 class MickeyClock:
     def __init__(self):
+        pygame.init()
         self.screen = pygame.display.set_mode((800, 600))
         pygame.display.set_caption("Mickey's Clock")
         self.clock = pygame.time.Clock()
         
-        try:
-            self.mickey_image = pygame.image.load("images/mickey_hand.png")
-            self.mickey_image = pygame.transform.scale(self.mickey_image, (400, 400))
-        except:
-            self.mickey_image = None
+        self.clock_face = pygame.image.load("mickeyclock.jpeg")
+        self.clock_face = pygame.transform.scale(self.clock_face, (400, 400))
+        
+        right_raw = pygame.image.load("images/right_hand.png")
+        self.right_hand = pygame.transform.scale(right_raw, (60, 160))
+        
+        left_raw = pygame.image.load("images/left_hand.png")
+        self.left_hand = pygame.transform.scale(left_raw, (60, 160))
         
         self.center_x = 400
         self.center_y = 300
+        
+        self.font = pygame.font.Font(None, 48)
         
     def run(self):
         running = True
@@ -24,41 +30,32 @@ class MickeyClock:
                 if event.type == pygame.QUIT:
                     running = False
             
-            self.screen.fill((255, 255, 255))
-            
-            current_time = datetime.now()
-            minutes = current_time.minute
-            seconds = current_time.second
+            now = datetime.now()
+            minutes = now.minute
+            seconds = now.second
             
             minute_angle = minutes * 6
             second_angle = seconds * 6
             
-            if self.mickey_image:
-                self.screen.blit(self.mickey_image, (self.center_x - 200, self.center_y - 200))
+            self.screen.fill((255, 255, 255))
             
-            minute_hand = self.create_hand(150, 15, (0, 0, 0))
-            second_hand = self.create_hand(180, 5, (255, 0, 0))
+            face_rect = self.clock_face.get_rect(center=(self.center_x, self.center_y))
+            self.screen.blit(self.clock_face, face_rect)
             
-            rotated_minute = pygame.transform.rotate(minute_hand, -minute_angle)
-            rotated_second = pygame.transform.rotate(second_hand, -second_angle)
+            rotated_right = pygame.transform.rotate(self.right_hand, -minute_angle)
+            rotated_left = pygame.transform.rotate(self.left_hand, -second_angle)
             
-            minute_rect = rotated_minute.get_rect(center=(self.center_x, self.center_y))
-            second_rect = rotated_second.get_rect(center=(self.center_x, self.center_y))
+            right_rect = rotated_right.get_rect(center=(self.center_x, self.center_y))
+            left_rect = rotated_left.get_rect(center=(self.center_x, self.center_y))
             
-            self.screen.blit(rotated_minute, minute_rect)
-            self.screen.blit(rotated_second, second_rect)
+            self.screen.blit(rotated_right, right_rect)
+            self.screen.blit(rotated_left, left_rect)
             
-            font = pygame.font.Font(None, 36)
-            time_text = font.render(f"{minutes:02d}:{seconds:02d}", True, (0, 0, 0))
-            text_rect = time_text.get_rect(center=(self.center_x, self.center_y + 200))
+            time_text = self.font.render(f"{minutes:02d}:{seconds:02d}", True, (0, 0, 0))
+            text_rect = time_text.get_rect(center=(self.center_x, self.center_y + 220))
             self.screen.blit(time_text, text_rect)
             
             pygame.display.flip()
             self.clock.tick(1)
         
         pygame.quit()
-    
-    def create_hand(self, length, width, color):
-        hand = pygame.Surface((length * 2, width * 2), pygame.SRCALPHA)
-        pygame.draw.rect(hand, color, (length - width//2, 0, width, length))
-        return hand
