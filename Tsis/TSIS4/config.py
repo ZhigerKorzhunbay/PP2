@@ -10,7 +10,7 @@ SETTINGS_FILE = "settings.json"
 DB_CONFIG = {
     "dbname": "snake_game",
     "user": "postgres",
-    "password": "1234",   # change to your PostgreSQL password
+    "password": "1234",  
     "host": "localhost",
     "port": 5432,
     "connect_timeout": 2,
